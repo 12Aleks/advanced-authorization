@@ -9,28 +9,28 @@ class TokenService {
             payload,
             process.env.JWT_ACCESS_SECRET_KEY,
             {expiresIn: '30m'}
-        )
+        );
         //dlitelnyj token zywuszyj na storone servera
         const refreshToken = jwt.sign(
             payload,
             process.env.JWT_REFRESH_SECRET_KEY,
             {expiresIn: '30d'}
-        )
+        );
         return {
             accessToken, refreshToken
         }
 
     }
     async saveToken(userId, refreshToken){
-      const tokenData = await tokenModel.findOne({user: userId});
+        const tokenData = await tokenModel.findOne({user: userId});
       if(tokenData){
           tokenData.refreshToken = refreshToken;
-          return tokenData.save()
+          return tokenData.save();
       }
 
-      const token = await tokenModel({user: userId, refreshToken})
-      return token
+      const token = await tokenModel.create({user: userId, refreshToken});
+      return token;
     }
 }
 
-module.exports = new TokenService()
+module.exports = new TokenService();
