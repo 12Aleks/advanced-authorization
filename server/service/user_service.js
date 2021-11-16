@@ -5,26 +5,41 @@ const mailService = require('./mail_service'); //dla otprawki na pocztu i podtwe
 const tokenService = require('./token_service');
 const UserDto = require('../dtos/user_dto')
 
-class UserService{
-  async registration(email, password){
-      const candidate = await UserModel.findOne({email});
-      if(candidate) {
-          throw new Error(`Пользователь с ${email} уже существует в базе данных`)
-      }
-           const hashPassword = await bcrypt.hash(password, 3);
-           const activationLink = uuid.v4(); //ssylka dla aktiwacii
-           const user = await UserModel.create({email, password: hashPassword, activationLink});
-           await mailService.sendActivationMail(email, activationLink);
+class UserService {
+    async registration(email, password) {
+        const candidate = await UserModel.findOne({email});
+        if (candidate) {
+            throw new Error(`Пользователь с ${email} уже существует в базе данных`)
+        }
+        const hashPassword = await bcrypt.hash(password, 3);
+        const activationLink = await uuid.v4(); //ssylka dla aktiwacii
+
+        const user = await UserModel.create({email, password: hashPassword, activationLink});
+
+        //Funkcija dla otpravki pisma s sylkoj dla podtwergdenija akkaunta
+        await mailService.sendActivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`);
 
 
-           const userDto = new UserDto(user); // id, email, isActivated
-           //generirujem tokeny akcess i refresz
-           const tokens = tokenService.generateToken({...userDto});
+        const userDto = new UserDto(user); // id, email, isActivated
+        //generirujem tokeny akcess i refresz
+        const tokens = tokenService.generateToken({...userDto});
 
-           await tokenService.saveToken(userDto.id, tokens.refreshToken);
+        await tokenService.saveToken(userDto.id, tokens.refreshToken);
 
-           return {...tokens, user: userDto}
-  }
+        return {...tokens, user: userDto}
+    }
+
+    //Funkcija aktivacii akkaunta po ssylke poluczenoj na emeail
+    async activate (activationLink) {
+       //poluczajem sgenerirowanuju uuid ranee ssylku iz path po kotoromu pereszol polzowatel posle klika na swojej elektrnnoj poczte
+       //i po nemu iszem jest li takoj polzowatel
+        const user = await UserModel.findOne({activationLink});
+        if(!user){
+            throw new Error('User not found')
+        }
+        user.isActivated = true;
+        await user.save()
+    }
 }
 
 module.exports = new UserService();
