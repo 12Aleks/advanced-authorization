@@ -23,7 +23,12 @@ class UserController{
 
     async login(req, res, next){
         try{
-
+            const {email, password} = req.body;
+            const userData = await userServices.login(email, password);
+            //refresh token my chranim w cookach, cookie my podkluczili w index.js app.use(cookieParser());
+            //w cookie - maxAge - dlitelnost zyzni cookie, httpOnly - cookie nielza menat i poluczat w seredine brauzera!!!
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.json(userData);
         }catch(e){
             next(e)
         }
@@ -31,6 +36,11 @@ class UserController{
 
     async logout(req, res, next){
         try{
+            //Iz cookies poluczajem refresz token
+            const {refreshToken} = req.cookies;
+            const token = await userServices.logout(refreshToken);
+            //udalajem cookie
+            res.clearCookie('refreshToken')
 
         }catch(e){
             next(e)
