@@ -2,76 +2,84 @@ const userServices = require('../service/user_service');
 const {validationResult} = require('express-validator');
 const ApiError = require('../exceptions/api_error')
 
-class UserController{
-    async registration(req, res, next){
-      try{
-          const errors = validationResult(req);
-          if(!errors.isEmpty()){
-              return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
-          }
-          const {email, password} = req.body;
-          const userData = await userServices.registration(email, password);
+class UserController {
+    async registration(req, res, next) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
+            }
+            const {email, password} = req.body;
+            const userData = await userServices.registration(email, password);
 
-          //refresh token my chranim w cookach, cookie my podkluczili w index.js app.use(cookieParser());
-          //w cookie - maxAge - dlitelnost zyzni cookie, httpOnly - cookie nielza menat i poluczat w seredine brauzera!!!
-          res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
-          return res.json(userData);
-      }catch(e){
-         next(e)
-      }
+            //refresh token my chranim w cookach, cookie my podkluczili w index.js app.use(cookieParser());
+            //w cookie - maxAge - dlitelnost zyzni cookie, httpOnly - cookie nielza menat i poluczat w seredine brauzera!!!
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.json(userData);
+        } catch (e) {
+            next(e)
+        }
     }
 
-    async login(req, res, next){
-        try{
+    async login(req, res, next) {
+        try {
             const {email, password} = req.body;
             const userData = await userServices.login(email, password);
             //refresh token my chranim w cookach, cookie my podkluczili w index.js app.use(cookieParser());
             //w cookie - maxAge - dlitelnost zyzni cookie, httpOnly - cookie nielza menat i poluczat w seredine brauzera!!!
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
             return res.json(userData);
-        }catch(e){
+        } catch (e) {
             next(e)
         }
     }
 
-    async logout(req, res, next){
-        try{
+    async logout(req, res, next) {
+        try {
             //Iz cookies poluczajem refresz token
             const {refreshToken} = req.cookies;
             const token = await userServices.logout(refreshToken);
             //udalajem cookie
-            res.clearCookie('refreshToken')
-
-        }catch(e){
+            res.clearCookie('refreshToken');
+            return res.json(token);
+        } catch (e) {
             next(e)
         }
     }
 
-    async activation(req, res, next){
-        try{
-          //iz stroki zaprosa poluczajem ssylku aktivacii (nazwanie link ukazano w routere)
-          const activationLink = req.params.link
-          await userServices.activate(activationLink);
-          //posle aktivacii nuzno perevest polzowatela s servera na realnyj host dla etogo delaem redirect w express est redirect()
-           return res.redirect(process.env.CLIENT_URL)
-        }catch(e){
+    async activation(req, res, next) {
+        try {
+            //iz stroki zaprosa poluczajem ssylku aktivacii (nazwanie link ukazano w routere)
+            const activationLink = req.params.link
+            await userServices.activate(activationLink);
+            //posle aktivacii nuzno perevest polzowatela s servera na realnyj host dla etogo delaem redirect w express est redirect()
+            return res.redirect(process.env.CLIENT_URL)
+        } catch (e) {
             next(e)
         }
     }
 
 
-    async refresh(req, res, next){
-        try{
+    async refresh(req, res, next) {
+        try {
+            //iz cookies poluczajem refresz token
+            const {refreshToken} = req.cookies;
+            const userData = await userServices.refresh(refreshToken);
+            //refresh token my chranim w cookach, cookie my podkluczili w index.js app.use(cookieParser());
+            //w cookie - maxAge - dlitelnost zyzni cookie, httpOnly - cookie nielza menat i poluczat w seredine brauzera!!!
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.json(userData);
 
-        }catch(e){
+        } catch (e) {
             next(e)
         }
     }
 
-    async getUsers(req, res, next){
-        try{
-         return res.json(['daat'])
-        }catch(e){
+    async getUsers(req, res, next) {
+        try {
+            const users = await userServices.getAllUsers();
+            return res.json(users)
+        } catch (e) {
             next(e)
         }
     }
