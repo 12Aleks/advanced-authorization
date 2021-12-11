@@ -12,7 +12,16 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+    //ukazywajem s kakim domenom my budem obmeniwatsa cookies
+
+    //razreszaem cookies
+    credentials: true,
+
+    //ukazywajem url frontenda localhost:3001
+    origin: process.env.CLIENT_URL
+  }
+));
 app.use(errorMiddleware)
 
 app.use('/api', routers);

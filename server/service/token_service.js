@@ -8,7 +8,7 @@ class TokenService {
         const accessToken = jwt.sign(
             payload,
             process.env.JWT_ACCESS_SECRET_KEY,
-            {expiresIn: '30m'}
+            {expiresIn: '15m'}
         );
         //dlitelnyj token zywuszyj na storone servera
         const refreshToken = jwt.sign(
