@@ -27,19 +27,24 @@ const LoginForm: FC = () => {
             </div>
             {store.isAuth ?
                 <div className='all'>
-                    <h2>List all users</h2>
-                    <table>
-                        <tr>
-                            <th>User ID</th>
-                            <th>User email</th>
-                        </tr>
-                        {users.map((user, index) =>
-                            <tr key={index}>
-                                <td>{index}</td>
-                                <td>{user.email}</td>
+                    {
+                        !users.length || <>
+                        <h2>List all users</h2>
+                        <table>
+                            <tr>
+                                <th>User ID</th>
+                                <th>User email</th>
                             </tr>
-                        )}
-                    </table>
+                            {users.map((user, index) =>
+                                <tr key={index}>
+                                    <td>{index}</td>
+                                    <td>{user.email}</td>
+                                </tr>
+                            )}
+                        </table>
+                        </>
+                    }
+
 
                 </div>
                 :
