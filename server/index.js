@@ -18,7 +18,7 @@ app.use(cors({
     //razreszaem cookies
     credentials: true,
 
-    //ukazywajem url frontenda localhost:3001
+    //ukazywajem url frontenda localhost:3000
     origin: process.env.CLIENT_URL
   }
 ));
